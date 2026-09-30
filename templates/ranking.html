@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ranking - Gyro Games</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<main class="home">
+  <section class="home-card ranking-card">
+    <h1>🏆 Ranking</h1>
+    <p class="subtitle">Melhores pontuações salvas no banco de dados.</p>
+
+    <div class="tabs">
+      <a class="tab {{ 'active' if active == 'all' else '' }}" href="/ranking">Todos</a>
+      {% for key, label in games.items() %}
+      <a class="tab {{ 'active' if active == key else '' }}" href="/ranking?game={{ key }}">{{ label }}</a>
+      {% endfor %}
+    </div>
+
+    {% if rows %}
+    <table class="ranking-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Nome</th>
+          {% if active == 'all' %}<th>Jogo</th>{% endif %}
+          <th>Pontos</th>
+          <th>Data</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ row[0] }}</td>
+          {% if active == 'all' %}<td>{{ games.get(row[2], row[2]) }}</td>{% endif %}
+          <td>{{ row[1] }}</td>
+          <td>{{ row[3] }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="subtitle">Ninguém pontuou ainda neste jogo. Jogue e apareça aqui!</p>
+    {% endif %}
+
+    <div class="buttons">
+      <a class="button secondary" href="/">Voltar para a home</a>
+    </div>
+  </section>
+</main>
+</body>
+</html>

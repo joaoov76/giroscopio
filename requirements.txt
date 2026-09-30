@@ -1,0 +1,4 @@
+Flask
+Flask-SocketIO
+qrcode
+pyOpenSSL  # necessário só para "python app.py --https" (certificado autoassinado)

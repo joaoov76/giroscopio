@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gyro Flappy</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<main class="home">
+  <section class="home-card">
+    <h1>🐦 Gyro Flappy</h1>
+    <p class="subtitle">Escaneie o QR Code com o celular para usar o giroscópio como controle.</p>
+
+    <div class="qr-box">
+      <img src="/qr/controller" alt="QR Code para abrir o controle" width="280" height="280">
+    </div>
+
+    <p class="url">
+      <strong>Controle:</strong><br>
+      <span>{{ controller_url }}</span>
+    </p>
+
+    <div class="buttons">
+      <a class="button" href="/game">Jogar Flappy</a>
+      <a class="button" href="/breakout">Jogar Breakout</a>
+      <a class="button" href="/dots">Jogar Ligue os Pontos</a>
+      <a class="button secondary" href="/controller">Abrir controle neste dispositivo</a>
+      <a class="button secondary" href="/ranking">Ver ranking</a>
+    </div>
+
+    <div class="instructions">
+      <b>Como jogar</b>
+      <ol>
+        <li>Escaneie o QR Code.</li>
+        <li>Digite seu nome no celular (aparece no jogo e no ranking).</li>
+        <li>Toque em <b>Ativar giroscópio</b>.</li>
+        <li>Incline o celular para controlar o personagem.</li>
+      </ol>
+    </div>
+  </section>
+</main>
+</body>
+</html>

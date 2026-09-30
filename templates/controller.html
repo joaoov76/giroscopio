@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Controle Gyro Flappy</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<main class="controller">
+  <h1>Controle</h1>
+  <p id="status">Conectando...</p>
+
+  <div class="name-box">
+    <label for="playerName">Seu nome (aparece no jogo e no ranking)</label>
+    <input id="playerName" type="text" maxlength="20" placeholder="Jogador">
+  </div>
+
+  <button id="enable">Ativar giroscópio</button>
+  <div class="sensor">
+    <div>Alpha: <b id="alpha">0</b></div>
+    <div>Beta: <b id="beta">0</b></div>
+    <div>Gamma: <b id="gamma">0</b></div>
+  </div>
+  <p>Incline o celular para controlar o personagem.</p>
+  <p id="diagnostic" class="diagnostic"></p>
+</main>
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+<script src="/static/player.js"></script>
+<script src="/static/controller.js"></script>
+</body>
+</html>
