@@ -23,8 +23,20 @@ DB = "game.db"
 GAMES = {
     "flappy": "Flappy",
     "breakout": "Breakout",
-    "dots": "Ligue os Pontos"
+    "dots": "Ligue os Pontos",
+    "birds": "Gyro Birds"
 }
+
+# Para onde o /play redireciona quando o celular escolhe um jogo.
+GAME_ROUTES = {
+    "flappy": "/game",
+    "breakout": "/breakout",
+    "dots": "/dots",
+    "birds": "/birds"
+}
+
+# Último jogo escolhido no celular, para quem abrir o /play depois da escolha.
+last_selected_game = {"game": None}
 
 def init_db():
     with sqlite3.connect(DB) as con:
@@ -81,9 +93,26 @@ def breakout():
 def dots():
     return render_template("dots.html")
 
+@app.route("/birds")
+def birds():
+    return render_template("birds.html")
+
 @app.route("/controller")
 def controller():
     return render_template("controller.html")
+
+@app.route("/play")
+def play():
+    # Tela de espera: fica aqui até o celular escolher um jogo, e então
+    # redireciona sozinha. Se o celular já tiver escolhido antes, pula direto.
+    controller_url = request.host_url.rstrip("/") + "/controller"
+    return render_template(
+        "play.html",
+        controller_url=controller_url,
+        games=GAMES,
+        routes=GAME_ROUTES,
+        initial_game=last_selected_game["game"]
+    )
 
 @app.route("/ranking")
 def ranking():
@@ -185,6 +214,20 @@ def handle_connect():
 @socketio.on("controller_connected")
 def controller_connected(data=None):
     emit("controller_status", {"connected": True}, broadcast=True)
+
+@socketio.on("action")
+def handle_action(data=None):
+    # Botão "Soltar" do celular, usado para lançar o pássaro no Gyro Birds.
+    emit("action", {}, broadcast=True, include_self=False)
+
+@socketio.on("select_game")
+def select_game(data=None):
+    # O celular escolhe o jogo; quem estiver na tela /play é levado até ele.
+    game = str((data or {}).get("game", "")).strip().lower()
+    if game not in GAME_ROUTES:
+        return
+    last_selected_game["game"] = game
+    emit("select_game", {"game": game}, broadcast=True, include_self=False)
 
 if __name__ == "__main__":
     use_https = "--https" in sys.argv

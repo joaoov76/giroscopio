@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gyro Birds - Jogo</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="game-page">
+<div class="hud">
+  <span>Pontos: <b id="score">0</b> &nbsp; Recorde: <b id="bestScore">0</b></span>
+  <span>Pássaros: <b id="birdsLeft">3</b> &nbsp; Fase: <b id="level">1</b></span>
+  <span>Jogador: <b id="playerName">Jogador</b> <button id="changeName" class="link-btn">trocar</button></span>
+  <span id="connection">Aguardando controle...</span>
+</div>
+<div class="game-wrap">
+<canvas id="game" width="800" height="600"></canvas>
+<div id="gameOverPanel" class="game-over-panel hidden">
+  <div class="game-over-box">
+    <h2 id="gameOverMessage">Fim de jogo!</h2>
+    <p class="hint">Incline forte o celular para jogar de novo</p>
+    <ul id="gameOverRanking" class="game-over-ranking"></ul>
+  </div>
+</div>
+</div>
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+<script src="/static/player.js"></script>
+<script src="/static/birds.js"></script>
+</body>
+</html>

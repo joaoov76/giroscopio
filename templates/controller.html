@@ -16,7 +16,20 @@
     <input id="playerName" type="text" maxlength="20" placeholder="Jogador">
   </div>
 
+  <div class="game-select">
+    <label>Escolha o jogo</label>
+    <div class="game-buttons">
+      <button type="button" class="game-btn" data-game="flappy">🐦 Flappy</button>
+      <button type="button" class="game-btn" data-game="breakout">🧱 Breakout</button>
+      <button type="button" class="game-btn" data-game="dots">🔵 Ligue os Pontos</button>
+      <button type="button" class="game-btn" data-game="birds">🎯 Gyro Birds</button>
+    </div>
+    <p id="selectedGame" class="hint"></p>
+  </div>
+
   <button id="enable">Ativar giroscópio</button>
+  <button id="action" class="action-btn">Soltar 🐦</button>
+  <p class="hint">O botão "Soltar" é usado no jogo Gyro Birds para lançar o pássaro.</p>
   <div class="sensor">
     <div>Alpha: <b id="alpha">0</b></div>
     <div>Beta: <b id="beta">0</b></div>

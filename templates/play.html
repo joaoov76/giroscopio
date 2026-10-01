@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gyro Games - Escolha o jogo</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<main class="home">
+  <section class="home-card">
+    <h1>🎮 Escolha o jogo no celular</h1>
+    <p class="subtitle" id="waitMessage">
+      Escaneie o QR Code, abra o controle e toque em um dos jogos.
+      Esta tela muda sozinha assim que você escolher.
+    </p>
+
+    <div class="qr-box">
+      <img src="/qr/controller" alt="QR Code para abrir o controle" width="280" height="280">
+    </div>
+
+    <p class="url">
+      <strong>Controle:</strong><br>
+      <span>{{ controller_url }}</span>
+    </p>
+
+    <div class="buttons">
+      {% for key, label in games.items() %}
+      <a class="button secondary" href="{{ routes[key] }}">Abrir {{ label }} direto</a>
+      {% endfor %}
+    </div>
+  </section>
+</main>
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+<script>
+    const socket = io();
+    const routes = {{ routes | tojson }};
+    const games = {{ games | tojson }};
+    const initialGame = {{ (initial_game or "") | tojson }};
+
+    function goTo(game) {
+        const path = routes[game];
+        if (!path) return;
+
+        const msg = document.getElementById("waitMessage");
+        if (msg) msg.textContent = "Abrindo " + (games[game] || game) + "...";
+
+        window.location.href = path;
+    }
+
+    socket.on("select_game", (data) => {
+        if (data && data.game) goTo(data.game);
+    });
+
+    // Se o celular já tinha escolhido antes de esta aba abrir, segue direto.
+    if (initialGame) goTo(initialGame);
+</script>
+</body>
+</html>
