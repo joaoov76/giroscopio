@@ -122,4 +122,41 @@ enableButton.addEventListener("click", async () => {
     }
 });
 
+const GAME_LABELS = {
+    flappy: "Flappy",
+    breakout: "Breakout",
+    dots: "Ligue os Pontos",
+    birds: "Gyro Birds"
+};
+
+const selectedGameEl = document.getElementById("selectedGame");
+
+document.querySelectorAll(".game-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+        const game = btn.dataset.game;
+
+        document.querySelectorAll(".game-btn").forEach((b) => b.classList.remove("selected"));
+        btn.classList.add("selected");
+
+        if (selectedGameEl) {
+            selectedGameEl.textContent =
+                "Abrindo " + (GAME_LABELS[game] || game) + " na tela...";
+        }
+
+        socket.emit("select_game", { game });
+    });
+});
+
+const actionButton = document.getElementById("action");
+
+if (actionButton) {
+    actionButton.addEventListener("click", () => {
+        socket.emit("action", {});
+
+        // Feedback visual rápido de que o toque foi enviado.
+        actionButton.classList.add("pressed");
+        setTimeout(() => actionButton.classList.remove("pressed"), 150);
+    });
+}
+
 checkEnvironment();

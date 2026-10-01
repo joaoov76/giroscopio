@@ -115,6 +115,22 @@ button:disabled {
     border-bottom: 0;
 }
 
+.action-btn {
+    background: #ff5a5f;
+    margin-top: 10px;
+}
+
+.action-btn.pressed {
+    background: #d9393e;
+    transform: scale(0.97);
+}
+
+.hint {
+    font-size: 12px;
+    color: #999;
+    margin: 6px 0 0;
+}
+
 .ranking-loading {
     color: #999;
     justify-content: center !important;
@@ -223,6 +239,38 @@ button:disabled {
     margin: 0 0 0 6px;
     display: inline;
     text-decoration: underline;
+}
+
+.game-select {
+    text-align: left;
+    margin: 20px 0;
+}
+
+.game-select > label {
+    display: block;
+    font-size: 13px;
+    color: #bbb;
+    margin-bottom: 8px;
+}
+
+.game-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.game-btn {
+    padding: 14px 10px;
+    border-radius: 10px;
+    border: 2px solid #3a3a3a;
+    background: #1c1c1c;
+    color: white;
+    font-size: 15px;
+}
+
+.game-btn.selected {
+    border-color: #4b8cff;
+    background: #24314f;
 }
 
 .ranking-card {

@@ -43,7 +43,7 @@ const state = {
     score: 0,
     lives: 3,
     level: 1,
-    speed: 5,
+    speed: 3,
     combo: 1,
     started: false,     // true depois do primeiro pacote do giroscópio
     launched: false,    // bola solta da raquete
@@ -53,8 +53,11 @@ const state = {
     lastTime: performance.now(),
     bricks: [],
     powerups: [],
+    particles: [],
     wideTimer: 0,
     slowTimer: 0,
+    fireTimer: 0,
+    shake: 0,
     statusMessage: "",
     statusTimer: 0
 };
@@ -68,7 +71,8 @@ const ROWS = 5;
 const POWERUPS = {
     wide: { label: "Plataforma larga", color: "#4b8cff", letter: "W" },
     slow: { label: "Bola lenta", color: "#a35bff", letter: "S" },
-    life: { label: "+1 vida", color: "#ff6fa5", letter: "♥" }
+    life: { label: "+1 vida", color: "#ff6fa5", letter: "♥" },
+    fire: { label: "Bola de fogo! Atravessa tijolos", color: "#ff7a3d", letter: "🔥" }
 };
 
 socket.on("connect", () => {
@@ -165,8 +169,11 @@ function resetGame() {
     state.combo = 1;
     state.gameOver = false;
     state.powerups = [];
+    state.particles = [];
     state.wideTimer = 0;
     state.slowTimer = 0;
+    state.fireTimer = 0;
+    state.shake = 0;
     state.statusMessage = "";
     state.statusTimer = 0;
     scoreSaved = false;
@@ -197,8 +204,9 @@ function maybeDropPowerUp(brick) {
 
     const roll = Math.random();
     let type = "wide";
-    if (roll > 0.85) type = "life";
-    else if (roll > 0.45) type = "slow";
+    if (roll > 0.9) type = "life";
+    else if (roll > 0.65) type = "fire";
+    else if (roll > 0.35) type = "slow";
 
     state.powerups.push({
         x: brick.x + brick.width / 2,
@@ -219,9 +227,26 @@ function applyPowerUp(type) {
     } else if (type === "life") {
         state.lives = Math.min(state.lives + 1, 5);
         updateHud();
+    } else if (type === "fire") {
+        state.fireTimer = 7;
     }
 
     setStatus(info.label + "!");
+}
+
+function spawnParticles(x, y, color) {
+    for (let i = 0; i < 8; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 2 + Math.random() * 3;
+
+        state.particles.push({
+            x, y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            life: 0.5,
+            color
+        });
+    }
 }
 
 function update(dt) {
@@ -242,8 +267,8 @@ function update(dt) {
     // O gamma representa a inclinação esquerda/direita.
     // Ajuste a sensibilidade aqui.
     const sensitivity = 0.25;
-    const maxVelocity = 12;
-    const deadZone = 3;
+    const maxVelocity = 10;
+    const deadZone = 2;
 
     let tilt = Math.abs(paddle.gamma) < deadZone ? 0 : paddle.gamma;
     if (keys["ArrowLeft"]) tilt = -40;
@@ -266,7 +291,17 @@ function update(dt) {
         }
     }
     if (state.slowTimer > 0) state.slowTimer -= dt;
+    if (state.fireTimer > 0) state.fireTimer -= dt;
     if (state.statusTimer > 0) state.statusTimer -= dt;
+    if (state.shake > 0) state.shake -= dt * 3;
+
+    // Partículas dos tijolos quebrados (só visual).
+    for (const p of state.particles) {
+        p.x += p.vx * dt * 60;
+        p.y += p.vy * dt * 60;
+        p.life -= dt;
+    }
+    state.particles = state.particles.filter(p => p.life > 0);
 
     // Power-ups caindo.
     for (const p of state.powerups) p.y += p.vy * dt * 60;
@@ -348,30 +383,36 @@ function update(dt) {
             ball.y + ball.radius > b.y &&
             ball.y - ball.radius < b.y + b.height
         ) {
-            const overlapX = Math.min(
-                ball.x + ball.radius - b.x,
-                b.x + b.width - (ball.x - ball.radius)
-            );
-            const overlapY = Math.min(
-                ball.y + ball.radius - b.y,
-                b.y + b.height - (ball.y - ball.radius)
-            );
+            const onFire = state.fireTimer > 0;
 
-            if (overlapX < overlapY) ball.vx = -ball.vx;
-            else ball.vy = -ball.vy;
+            if (!onFire) {
+                const overlapX = Math.min(
+                    ball.x + ball.radius - b.x,
+                    b.x + b.width - (ball.x - ball.radius)
+                );
+                const overlapY = Math.min(
+                    ball.y + ball.radius - b.y,
+                    b.y + b.height - (ball.y - ball.radius)
+                );
 
-            b.hits--;
+                if (overlapX < overlapY) ball.vx = -ball.vx;
+                else ball.vy = -ball.vy;
+            }
+
+            // Em chamas, a bola destrói o tijolo de uma vez, sem rebater.
+            b.hits -= onFire ? b.hits : 1;
 
             if (b.hits <= 0) {
                 state.score += b.points * state.combo;
                 state.combo = Math.min(state.combo + 1, 5);
                 updateCombo();
                 maybeDropPowerUp(b);
+                spawnParticles(b.x + b.width / 2, b.y + b.height / 2, b.color);
                 state.bricks.splice(i, 1);
             }
 
             updateHud();
-            break;
+            if (!onFire) break; // em chamas, continua checando outros tijolos no mesmo frame
         }
     }
 
@@ -383,6 +424,7 @@ function update(dt) {
     // Bola perdida
     if (ball.y - ball.radius > canvas.height) {
         state.lives--;
+        state.shake = 1;
         updateHud();
 
         if (state.lives <= 0) {
@@ -421,6 +463,12 @@ function saveScore() {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    ctx.save();
+    if (state.shake > 0) {
+        const s = state.shake;
+        ctx.translate((Math.random() - 0.5) * 10 * s, (Math.random() - 0.5) * 10 * s);
+    }
+
     // Fundo
     ctx.fillStyle = "#1b2440";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -452,12 +500,28 @@ function draw() {
         ctx.textBaseline = "alphabetic";
     }
 
+    // Partículas dos tijolos quebrados
+    for (const p of state.particles) {
+        ctx.globalAlpha = Math.max(0, p.life / 0.5);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x - 2, p.y - 2, 4, 4);
+    }
+    ctx.globalAlpha = 1;
+
     // Raquete (fica azulada enquanto "larga" está ativa)
     ctx.fillStyle = state.wideTimer > 0 ? "#8fb8ff" : "#ffd83d";
     ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
 
-    // Bola (arroxeada enquanto "lenta" está ativa)
-    ctx.fillStyle = state.slowTimer > 0 ? "#c9a3ff" : "#ffffff";
+    // Bola (roxa/lenta, ou em chamas; branca por padrão)
+    if (state.fireTimer > 0) {
+        ctx.fillStyle = "rgba(255,122,61,0.35)";
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.radius + 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#ff7a3d";
+    } else {
+        ctx.fillStyle = state.slowTimer > 0 ? "#c9a3ff" : "#ffffff";
+    }
     ctx.beginPath();
     ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
     ctx.fill();
@@ -478,6 +542,8 @@ function draw() {
     } else if (state.gameOver) {
         drawMessage("GAME OVER - incline forte para recomeçar");
     }
+
+    ctx.restore();
 }
 
 function drawMessage(message) {
